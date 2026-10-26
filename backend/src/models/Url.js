@@ -3,13 +3,17 @@ const User = require("./User");
 const urlSchema = new mongoose.Schema(
   {
     url: String,
-    shortCode: String,
+    shortCode:{
+      type:String,
+      unique:true,
+    },
     clicks: Number,
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+    tags:[]
   },
   {
     timestamps: true,

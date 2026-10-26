@@ -4,43 +4,50 @@ import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const [login, chngLogin] = useState(false);
-  const [name, setName] = useState();
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [data, setData] = useState("");
-  const navigate=useNavigate();
+  const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let response;
-    if (login) {
-      const formData = JSON.stringify({
-        email: email,
-        password: password,
-      });
-      response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "Application/json" },
-        credentials: "include",
-        body: formData,
-      });
-    } else {
-      const formData = JSON.stringify({
-        name: name,
-        email: email,
-        password: password,
-      });
-      response = await fetch(`http://localhost:3000/api/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "Application/json" },
-        credentials: "include",
-        body: formData,
-      });
-    }
+    try {
+      let response;
+      if (login) {
+        const formData = JSON.stringify({
+          email: email,
+          password: password,
+        });
+        response = await fetch(`${apiUrl}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: formData,
+        });
+      } else {
+        const formData = JSON.stringify({
+          name: name,
+          email: email,
+          password: password,
+        });
+        response = await fetch(`${apiUrl}/auth/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: formData,
+        });
+      }
 
-    const data = await response.json();
-    setData(data.message);
-    if(data.message==="success"){
-      navigate('/dashboard2');
+      const resData = await response.json();
+      setData(resData.message);
+      if (resData.message === "success") {
+        navigate('/dashboard2');
+      }
+    } catch (error) {
+      console.error("Authentication error:", error);
+      setData("Something went wrong. Please try again.");
     }
   };
   return (
@@ -79,6 +86,7 @@ const Login = () => {
                 <input
                   type="text"
                   name="name"
+                  value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="p-2.5 rounded-lg outline-0 bg-zinc-950 border border-zinc-800 focus:border-indigo-500 text-zinc-100 placeholder:text-zinc-600 transition-all text-sm"
                   placeholder="Your name"
@@ -94,6 +102,7 @@ const Login = () => {
               <input
                 type="email"
                 name="email"
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="p-2.5 rounded-lg outline-0 bg-zinc-950 border border-zinc-800 focus:border-indigo-500 text-zinc-100 placeholder:text-zinc-600 transition-all text-sm"
                 placeholder="name@example.com"
@@ -108,6 +117,7 @@ const Login = () => {
               <input
                 type="password"
                 name="password"
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="p-2.5 rounded-lg outline-0 bg-zinc-950 border border-zinc-800 focus:border-indigo-500 text-zinc-100 placeholder:text-zinc-600 transition-all text-sm"
                 placeholder="*******"

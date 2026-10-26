@@ -5,11 +5,12 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { IoLink, IoQrCodeSharp, IoLockClosedOutline } from "react-icons/io5";
 import { GoClockFill } from "react-icons/go";
 import { SiSimpleanalytics } from "react-icons/si";
-import ShortenUrlForm from "../components/ShortenUrlForm";
+
 
 
 const Dashboard = () => {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
+  const [link, setLink] = useState("");
   const fData = [
     {
       title: "Custom Aliases",
@@ -48,8 +49,6 @@ const Dashboard = () => {
       color: "#38bdf8",
     },
   ];
-  const [link,setLink]=useState();
-  const [shortLink,setShortLink]=useState();
   const handleSubmit=()=>{
     navigate('/login');
   }
@@ -93,11 +92,12 @@ const Dashboard = () => {
             Shorten, brand, and track every click. With QR codes, password
             protection, expiry dates, and deep analytics — all in one tool.
           </p>
-          {/* <div className="linkInput flex gap-3 bg-zinc-900/80 backdrop-blur-md rounded-2xl p-2.5 border border-zinc-800 shadow-2xl shadow-black/50 w-full max-w-2xl">
+          <div className="linkInput flex gap-3 bg-zinc-900/80 backdrop-blur-md rounded-2xl p-2.5 border border-zinc-800 shadow-2xl shadow-black/50 w-full max-w-2xl">
             <input
               type="text"
               placeholder="https://paste-your-long-url.com/very/long/path"
               className="p-3 rounded-xl flex-1 border border-zinc-800 focus:border-indigo-500 bg-zinc-950 text-zinc-100 placeholder:text-zinc-600 outline-none transition-all text-sm"
+              value={link}
               onChange={(e) => setLink(e.target.value)}
             />
             <button
@@ -107,11 +107,7 @@ const Dashboard = () => {
             >
               Shorten
             </button>
-          </div> */}
-          <ShortenUrlForm  link={link}
-            setLink={setLink}
-            handleSubmit={handleSubmit}
-            shortLink={shortLink}/>
+          </div>
 
         </div>
         <div className="features flex flex-col gap-8 items-center w-full max-w-6xl px-6 py-16">

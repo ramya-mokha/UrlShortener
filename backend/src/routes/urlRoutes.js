@@ -9,5 +9,6 @@ router.post('/submit',authMiddleware,urlController.createShortCode
 )
 router.post('/delete',authMiddleware,urlController.deleteUrl
 )
+router.get('/getTodaysClicks',authMiddleware,urlController.calcTodaysClicks);
 
 module.exports=router;

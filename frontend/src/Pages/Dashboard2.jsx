@@ -9,7 +9,7 @@ import { SiSimpleanalytics } from "react-icons/si";
 import { PiSignOutFill } from "react-icons/pi";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { useState, useEffect } from "react";
-import { createShortUrl, getMyUrls } from "../services/urlService";
+import { createShortUrl, getMyUrls, getTodaysClicks } from "../services/urlService";
 import ShortenUrlForm from "../components/ShortenUrlForm";
 import LinkCard from "../components/LinkCard";
 import { logoutUser } from "../services/authService";
@@ -19,23 +19,32 @@ import { useNavigate } from "react-router-dom";
 const Dashboard2 = () => {
   const [newLink, setNewLink] = useState(false);
   const [currPage, setCurrPage] = useState("analytics");
+  const [customAlias, setCustomAlias] = useState("");
+  const [tags, setTags] = useState("");
   const [sort, setSort] = useState("new");
-  const [filter, setFilter] = useState("");
+
   const [searchInput, setSearchInput] = useState("");
   const [shortLink, setShortLink] = useState(null);
   const [link, setLink] = useState("");
   const [myUrls, setMyUrls] = useState([]);
   const navigate = useNavigate();
-   const {user,setUser,loading,fetchCurrentUser} = useAuth();
+  const { user, setUser, loading, fetchCurrentUser } = useAuth();
+  const [todaysClicks,setTodaysClicks]=useState(0);
   const handleSubmit = async () => {
-    const response = await createShortUrl(link);
+    const response = await createShortUrl(link, customAlias,tags);
+    if (response.data) {
+      setShortLink(response.data.shortCode);
+    } else {
+      setShortLink(null);
+      alert(response.message);
+      return;
+    }
     setMyUrls((prev) => {
-      const exists = prev.some((url) => url._id === response._id);
+      const exists = prev.some((url) => url._id === response.data._id);
       if (exists) return prev;
-      console.log(response);
-      return [...prev, response];
+      return [...prev, response.data];
     });
-    setShortLink(response.shortCode);
+    alert(response.message);
   };
   const handleSignOut = async () => {
     try {
@@ -63,6 +72,7 @@ const Dashboard2 = () => {
       return b.clicks - a.clicks;
     };
   }
+
   const displayedUrls = myUrls
     .filter((url) => {
       const text = searchInput.toLowerCase().trim();
@@ -78,6 +88,8 @@ const Dashboard2 = () => {
       if (prev) setShortLink(null);
       return !prev;
     });
+    setCustomAlias("");
+    setTags("");
   };
   let totalClicks = myUrls.reduce((total, url) => {
     return total + url.clicks;
@@ -97,7 +109,7 @@ const Dashboard2 = () => {
       color: "text-pink-400",
     },
     {
-      title: 0,
+      title: todaysClicks,
       desc: "Today's Clicks",
       icon: IoAnalytics,
       color: "text-emerald-400",
@@ -118,21 +130,21 @@ const Dashboard2 = () => {
   const handleLinks = () => {
     setCurrPage("links");
   };
-
-  useEffect(() => {
-    const fetchUrls = async () => {
+  const refreshDashboard= async ()=>{
       const data = await getMyUrls();
       setMyUrls(data);
-    };
-
-    fetchUrls();
+      const tclicks=await getTodaysClicks();
+      setTodaysClicks(tclicks);
+  }
+  useEffect(() => {
+   refreshDashboard();
   }, []);
-  useEffect(()=>{
-    const fetchUser=async()=>{
+  useEffect(() => {
+    const fetchUser = async () => {
       fetchCurrentUser();
-    }
+    };
     fetchUser();
-  },[])
+  }, []);
   return (
     <div className="flex bg-zinc-950 min-h-screen text-zinc-100  ">
       <div className="w-[17%] flex flex-col justify-between gap-2 border-r border-zinc-800 bg-zinc-900/40 p-5 shrink-0 h-screen fixed left-0 top-0">
@@ -179,7 +191,7 @@ const Dashboard2 = () => {
         <div className="flex flex-col gap-2 ">
           <div className="flex gap-2 items-center">
             <div>
-              <MdOutlineAccountCircle size={30} color="blue"/>
+              <MdOutlineAccountCircle size={30} color="blue" />
             </div>
             <div className="overflow-hidden">
               <p className="font-light text-zinc-400">{user?.name}</p>
@@ -187,8 +199,10 @@ const Dashboard2 = () => {
             </div>
           </div>
           <div className="p-2 w-full hover:text-rose-400 hover:bg-rose-500/10 rounded-lg cursor-pointer flex  gap-3 items-center transition-colors ">
-            <PiSignOutFill size={20}/>
-            <button className="font-light text-sm" onClick={handleSignOut}>Sign Out</button>
+            <PiSignOutFill size={20} />
+            <button className="font-light text-sm" onClick={handleSignOut}>
+              Sign Out
+            </button>
           </div>
         </div>
       </div>
@@ -229,6 +243,10 @@ const Dashboard2 = () => {
             setLink={setLink}
             handleSubmit={handleSubmit}
             shortLink={shortLink}
+            customAlias={customAlias}
+            setCustomAlias={setCustomAlias}
+            tags={tags}
+            setTags={setTags}
           />
         )}
         <div className="flex gap-3 items-center flex-wrap">
@@ -270,6 +288,7 @@ const Dashboard2 = () => {
               key={url.shortCode}
               createdAt={url.createdAt}
               setMyUrls={setMyUrls}
+              tags={url.tags || []}
             />
           ))
         )}

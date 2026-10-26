@@ -3,9 +3,9 @@ import { IoCopyOutline, IoQrCodeSharp,IoOpenOutline  } from "react-icons/io5";
 import { MdDeleteOutline } from "react-icons/md";
 import { SiSimpleanalytics } from "react-icons/si";
 import { TiTick } from "react-icons/ti";
-import { handleDeleteUrl } from "../services/urlService";
+import { deleteUrl } from "../services/urlService";
 import QRModal from "./QRModal";
-const LinkCard = ({ url, shortCode, clicks ,setMyUrls,createdAt}) => {
+const LinkCard = ({ url, shortCode, clicks ,setMyUrls,createdAt,tags}) => {
   const [qrOpen, setQrOpen] = useState(false);
   const [copied,setCopied]=useState(false);
   const handleCopy=async ()=>{
@@ -14,11 +14,23 @@ const LinkCard = ({ url, shortCode, clicks ,setMyUrls,createdAt}) => {
     setCopied(true);
     setTimeout(()=>{setCopied(false)},3000)
   }
-  const handleRedirect=async (shortCode)=>{
-   const url=`${import.meta.env.VITE_GET_URL}/${shortCode}`
-   window.open(url, "_blank", "noopener,noreferrer")
-   
-  }
+  const handleRedirect = async (shortCode) => {
+    const url = `${import.meta.env.VITE_GET_URL}/${shortCode}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleDelete = async () => {
+    try {
+      const data = await deleteUrl(shortCode);
+      setMyUrls((prev) => prev.filter((item) => item.shortCode !== shortCode));
+      if (data?.message) {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error("Failed to delete URL:", error);
+      alert("Failed to delete URL");
+    }
+  };
   return (
     <div className="bg-zinc-900/60  hover:bg-zinc-900/90 p-4 rounded-xl border border-zinc-800 hover:border-zinc-700/80 ">
       <div className="flex flex-col transition-all gap-2 md:flex-row md:justify-between md:items-center">
@@ -34,6 +46,11 @@ const LinkCard = ({ url, shortCode, clicks ,setMyUrls,createdAt}) => {
             <span>{clicks} clicks</span>
             <span>•</span>
             <span>{new Date(createdAt).toLocaleDateString("en-IN")}</span>
+          </div>
+          <div className="tags flex gap-2 font-light text-sm text-zinc-400 mt-1">
+            {(tags || []).filter(Boolean).map((t, idx) => (
+              <div key={idx} className="bg-zinc-700/80 px-1 rounded-sm">{t}</div>
+            ))}
           </div>
         </div>
         <div className="flex gap-2 text-zinc-400">
@@ -66,7 +83,8 @@ const LinkCard = ({ url, shortCode, clicks ,setMyUrls,createdAt}) => {
           </button>
           <button
             className="p-2 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg cursor-pointer transition-colors"
-            title="Delete" onClick={()=>handleDeleteUrl(shortCode,setMyUrls)}
+            title="Delete"
+            onClick={handleDelete}
           >
             <MdDeleteOutline size={19} />
           </button>
